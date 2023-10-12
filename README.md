@@ -314,7 +314,7 @@ Listen 14400
 
 ## Soal 18
 #### Steps:
-1. `nano /var/www/rjp.baratayuda.abimanyu.d14.com/.htaccess`
+1. `nano /var/www/rjp.baratayuda.abimanyu.d14/.htaccess`
 ```
 AuthType Basic
 AuthName "Authentication Required"
