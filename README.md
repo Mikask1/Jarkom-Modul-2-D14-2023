@@ -1,38 +1,294 @@
+
+
 # Jarkom-Modul-2-D14-2023
 - Darren Prasetya (5025211162)
-- Kamal ()
+- Mohammad Kamal (5025211180)
+
+
+# Soal 
+
+
+1. Yudhistira akan digunakan sebagai DNS Master, Werkudara sebagai DNS Slave, Arjuna merupakan Load Balancer yang terdiri dari beberapa Web Server yaitu Prabakusuma, Abimanyu, dan Wisanggeni. Buatlah topologi dengan pembagian [sebagai berikut.](https://docs.google.com/spreadsheets/d/1OqwQblR_mXurPI4gEGqUe7v0LSr1yJViGVEzpMEm2e8/edit?usp=sharing) Folder topologi dapat diakses pada [drive berikut](https://drive.google.com/drive/folders/1Ij9J1HdIW4yyPEoDqU1kAwTn_iIxg3gk?usp=sharing) 
+    
+2. Buatlah website utama pada node arjuna dengan akses ke arjuna.yyy.com dengan alias www.arjuna.yyy.com dengan yyy merupakan kode kelompok.
+    
+3. Dengan cara yang sama seperti soal nomor 2, buatlah website utama dengan akses ke abimanyu.yyy.com dan alias www.abimanyu.yyy.com.
+    
+4. Kemudian, karena terdapat beberapa web yang harus di-deploy, buatlah subdomain parikesit.abimanyu.yyy.com yang diatur DNS-nya di Yudhistira dan mengarah ke Abimanyu.
+    
+5. Buat juga reverse domain untuk domain utama. (Abimanyu saja yang direverse)
+    
+6. Agar dapat tetap dihubungi ketika DNS Server Yudhistira bermasalah, buat juga Werkudara sebagai DNS Slave untuk domain utama.
+    
+7. Seperti yang kita tahu karena banyak sekali informasi yang harus diterima, buatlah subdomain khusus untuk perang yaitu baratayuda.abimanyu.yyy.com dengan alias www.baratayuda.abimanyu.yyy.com yang didelegasikan dari Yudhistira ke Werkudara dengan IP menuju ke Abimanyu dalam folder Baratayuda.
+    
+8. Untuk informasi yang lebih spesifik mengenai Ranjapan Baratayuda, buatlah subdomain melalui Werkudara dengan akses rjp.baratayuda.abimanyu.yyy.com dengan alias www.rjp.baratayuda.abimanyu.yyy.com yang mengarah ke Abimanyu.
+    
+9. Arjuna merupakan suatu Load Balancer Nginx dengan tiga worker (yang juga menggunakan nginx sebagai webserver) yaitu Prabakusuma, Abimanyu, dan Wisanggeni. Lakukan deployment pada masing-masing worker.
+    
+10. Kemudian gunakan algoritma Round Robin untuk Load Balancer pada Arjuna. Gunakan server_name pada soal nomor 1. Untuk melakukan pengecekan akses alamat web tersebut kemudian pastikan worker yang digunakan untuk menangani permintaan akan berganti ganti secara acak. Untuk webserver di masing-masing worker wajib berjalan di port 8001-8003. Contoh
+    
+
+    - Prabakusuma:8001
+
+    - Abimanyu:8002
+
+    - Wisanggeni:8003
+
+11. Selain menggunakan Nginx, lakukan konfigurasi Apache Web Server pada worker Abimanyu dengan web server www.abimanyu.yyy.com. Pertama dibutuhkan web server dengan DocumentRoot pada /var/www/abimanyu.yyy
+    
+12. Setelah itu ubahlah agar url www.abimanyu.yyy.com/index.php/home menjadi www.abimanyu.yyy.com/home.
+    
+13. Selain itu, pada subdomain www.parikesit.abimanyu.yyy.com, DocumentRoot disimpan pada /var/www/parikesit.abimanyu.yyy
+    
+14. Pada subdomain tersebut folder /public hanya dapat melakukan directory listing sedangkan pada folder /secret tidak dapat diakses (403 Forbidden).
+    
+15. Buatlah kustomisasi halaman error pada folder /error untuk mengganti error kode pada Apache. Error kode yang perlu diganti adalah 404 Not Found dan 403 Forbidden.
+    
+16. Buatlah suatu konfigurasi virtual host agar file asset www.parikesit.abimanyu.yyy.com/public/js menjadi 
+    
+
+www.parikesit.abimanyu.yyy.com/js 
+
+17. Agar aman, buatlah konfigurasi agar www.rjp.baratayuda.abimanyu.yyy.com hanya dapat diakses melalui port 14000 dan 14400.
+    
+18. Untuk mengaksesnya buatlah autentikasi username berupa “Wayang” dan password “baratayudayyy” dengan yyy merupakan kode kelompok. Letakkan DocumentRoot pada /var/www/rjp.baratayuda.abimanyu.yyy.
+    
+19. Buatlah agar setiap kali mengakses IP dari Abimanyu akan secara otomatis dialihkan ke [www.abimanyu.yyy.com](http://www.abimanyu.yyy.com) (alias)
+    
+20. Karena website www.parikesit.abimanyu.yyy.com semakin banyak pengunjung dan banyak gambar gambar random, maka ubahlah request gambar yang memiliki substring “abimanyu” akan diarahkan menuju abimanyu.png.
+    
+
+  
+# Jawaban
+
+## Soal 1 
+Berikut merupakan topologi yang ditentukan untuk kelompok kami bedasarkan gambar yang telah ditentukan.
+The topology in question :
+
+![[Screenshot 2023-10-13 at 06.26.43.png]]
+
+## Soal 2 dan 3
+Pertama masukan command `iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE -s 192.168.0.0/16` di server yang disambungin ke NAT untuk memberi akses internet untuk semua node. Lalu masukan command `echo nameserver 192.198.122.1 > /etc/resolv.conf` pada semua node yang membutuhkan koneksi internet.
+
+Lalu gunakan command `apt-get update` dan `apt-get install bind9 -y` pada DNSMaster dan DNSSlave. 
+
+### Yudhistira
+Setelah itu edit `/etc/bind/named.conf.local` dengan config :
+
+
+	zone "abimanyu.d14.com" {
+		        type master;
+		        file "/etc/bind/abimanyu/abimanyu.d14.com";
+		};
+	
+	zone "arjuna.d14.com" {
+	
+	type master;
+	
+	    file "/etc/bind/arjuna/arjuna.d14.com";
+	};
+
+
+Lalu buat directory /etc/bind/arjuna/arjuna.d14.com dan isi config dengan :
+
+	;
+		; BIND data file for local loopback interface
+		;
+		$TTL    604800
+		@       IN      SOA     arjuna.d14.com. root.arjuna.d14.com. (
+		                         2022100601;    ; Serial
+		                         604800         ; Refresh
+		                          86400         ; Retry
+		                        2419200         ; Expire
+		                         604800 )       ; Negative Cache TTL
+		;
+		@       IN      NS      arjuna.d14.com.
+		@       IN      A       192.198.3.2     ; IP Arjuna
+		WWW     IN      CNAME   arjuna.d14.com.
+		@       IN      AAAA    ::1
+
+Lalu buat directory /etc/bind/abimanyu/abimanyu.d14.com dan isi config dengan :
+
+	;
+		; BIND data file for local loopback interface
+		;
+		$TTL    604800
+		@       IN      SOA     abimanyu.d14.com. root.abimanyu.d14.com. (
+		                         2022100601;    ; Serial
+		                         604800         ; Refresh
+		                          86400         ; Retry
+		                        2419200         ; Expire
+		                         604800 )       ; Negative Cache TTL
+		;
+		@       IN      NS      abimanyu.d14.com.
+		@       IN      A       192.198.3.5     ; IP Yudhistira
+		WWW     IN      CNAME   abimanyu.d14.com.
+		@       IN      AAAA    ::1
+
+Lalu jalankan `service bind9 restart`
+
+
+### Werkudara
+Edit /etc/bind/named.conf.local
+dan isi :
+
+	zone "abimanyu.d14.com" {
+		        type slave;
+		        masters {192.198.2.2;};
+		        file "/var/lib/bind/abimanyu.d14.com";
+		};
+
+run `service bind9 restart`.
+
+#### Test
+![[Screenshot 2023-10-14 at 16.58.29.png]]
+![[Screenshot 2023-10-14 at 17.01.15.png]]
+## Soal 4 dan 5
+
+**add bawah ini** kepada `etc/bind/named.conf.local`
+
+	 zone "2.198.192.in-addr.arpa" {
+		    type master;
+		    file "/etc/bind/abimanyu/2.198.192.in-addr.arpa";
+		};
+
+Lalu buat directory dan edit `etc/bind/abimanyu/2.198.192.in-addr.arpa`. Isi file dengan :
+
+	
+		;
+		; BIND data file for local loopback interface
+		;
+		$TTL    604800
+		@       IN      SOA     abimanyu.d14.com. root.abimanyu.d14.com. (
+		                         2022100601     ; Serial
+		                         604800         ; Refresh
+		                          86400         ; Retry
+		                        2419200         ; Expire
+		                         604800 )       ; Negative Cache TTL
+		;
+		2.198.192.in-addr.arpa.      IN      NS      abimanyu.d14.com.
+		2               IN      PTR     abimanyu.d14.com. ; byte ke-4
+
+Kemudian edit /etc/bind/abimanyu/abimanyu.d14.com seperti ini :
+
+	;
+		; BIND data file for local loopback interface
+		;
+		$TTL    604800
+		@       IN      SOA     abimanyu.d14.com. root.abimanyu.d14.com. (
+		                         2022100601;    ; Serial
+		                         604800         ; Refresh
+		                          86400         ; Retry
+		                        2419200         ; Expire
+		                         604800 )       ; Negative Cache TTL
+		;
+		@       IN      NS      abimanyu.d14.com.
+		@       IN      A       192.198.2.5
+		WWW     IN      CNAME   abimanyu.d14.com.
+		parikesit IN A          192.198.3.5     ; IP Abimanyu
+		@       IN      AAAA    ::1
+
+Kemudian restart bind
+### Testing
+![[Screenshot 2023-10-14 at 17.02.21.png]]
+## Soal 6
+
+### Werkudara
+Edit file `etc/bind/named.conf.local` dan tambah :
+
+	zone "abimanyu.E19.com" {
+	
+	    type slave;
+	    masters { 10.46.2.2; }; #IP yudhistira
+	    file "/var/lib/bind/abimanyu.d14.com";
+	
+	};
+lalu restart bind.
+### Yudhistira
+
+Selanjutnya edit file `etc/bind/named.conf.local` dan tambah :
+
+	zone "abimanyu.d14.com" {
+	
+	    type master;
+	    notify yes;
+	    also-notify { 10.46.2.3; };
+	    allow-transfer { 10.46.2.3; };
+	    file "/etc/bind/abimanyu/abimanyu.d14.com";
+	
+	}
+	
+`Kemudian restart`
+
+
+## Soal 7 dan 8
+
+### Yudhistira
+
+Edit file /etc/bind/abimanyu/abimanyu.d14.com seperti ini :
+
+	; BIND data file for local loopback interface
+		;
+		$TTL    604800
+		@       IN      SOA     abimanyu.d14.com. root.abimanyu.d14.com. (
+		                         2022100601;    ; Serial
+		                         604800         ; Refresh
+		                          86400         ; Retry
+		                        2419200         ; Expire
+		                         604800 )       ; Negative Cache TTL
+		;
+		@       IN      NS      abimanyu.d14.com.
+		@       IN      A       192.198.2.2     ; IP Yudhistira
+		www     IN     CNAME    abimanyu.d14.com.
+		parikesit IN A          192.198.3.5     ; IP Abimanyu
+		ns1 IN A 192.198.2.3 ; IP Werkudara
+		baratayuda IN NS ns1
+		@ IN AAAA ::1
+
+Kemudian edit /etc/bind/named.conf.options lalu comment `dnssec-validation auto` dan tambah `allow-query{any;}` di bawahnya. Lalu lakukan restart lagi.
+
+### Werkudara 
+
+Lakukan step yang sama pada file /etc/bind/named.conf.options. Kemudian edit file zone dan tambahkan : 
+
+	
+	zone "baratayuda.abimanyu.d14.com" {
+			        type master;
+			        file "/etc/bind/delegasi/baratayuda.abimanyu.d14.com";
+			};
+
+Lalu buat directory delegasi /etc/bind/delegasi/baratayuda.abimanyu.d14.com dan edit file tersebut seperti : 
+
+		;
+		; BIND data file for local loopback interface
+		;
+		$TTL    604800
+		@       IN      SOA     baratayuda.abimanyu.dl4.com. root.baratayuda.abimanyu.d$
+		                              2022100601                ; Serial
+		                         604800         ; Refresh
+		                          86400         ; Retry
+		                        2419200         ; Expire
+		                         604800 )       ; Negative Cache TTL
+		;
+		@       IN      NS      baratayuda.abimanyu.d14.com.
+		@       IN      A       192.198.2.3
+		www    IN      CNAME    baratayuda.abimanyu.d14.com.
+		rjp IN      A      192.198.2.3
+
+Kemudian restart service bind.
+
+
+### Testing
+![[Screenshot 2023-10-14 at 17.05.21.png]]
 
 ## Soal 9 dan 10
-#### Steps:
-1. Pertama kita perlu buat domain arjuna.d14.com, jadi kita perlu pergi ke DNS Master (Yudhistira)
-2. `nano /etc/bind/named.conf.local`
-```
-zone "arjuna.d14.com" {
-	type master;
-	file "/etc/bind/arjuna/arjuna.d14.com";
-};
-```
-3. `mkdir /etc/bind/arjuna`
-4. `nano /etc/bind/arjuna/arjuna.d14.com`
-```
-$TTL 604800; 
-@ 	IN 	SOA 	arjuna.d14.com.	root.arjuna.d14.com. (
-  			2023101101	; Serial
-  			604800 		; Refresh
-  			86400 		; Retry
-  			2419200		; NExpire
-  			604800 ) 	; Negative Cache TTL
-;
-@	IN 	NS 	arjuna.d14.com.
-@	IN 	A 	192.198.3.2
-www	IN 	CNAME 	arjuna.d14.com.
-```
-5. `service bind9 restart`
-6. Kemudian, kita buka Web Servers Abimanyu, Prabukusuma, Wisanggeni
-6. `echo nameserver 192.168.122.1 > /etc/resolv.conf`
-7. `apt-get update && apt install nginx php php-fpm -y`
-8. `mkdir /var/www/arjuna.d14`
-9. `nano /var/www/arjuna.d14/index.php`
+
+Buka webserver Abimanyu, Prabukusuma, Wisanggeni. Lalu run command 
+`echo nameserver 192.168.122.1 > /etc/resolv.conf` pada ketiga server tsb.
+Setelah itu jalankan `apt-get update &&  apt install nginx php php-fpm -y` untuk menginstall nginx.  Setelah installasi selesai, buat directory dengan command 
+`mkdir /var/www/arjuna.d14` dan buat file `/var/www/arjuna.d14/index.php` dan isi file tersebut dengan : 
+
 ```
 <?php
 $hostname = gethostname();
@@ -48,7 +304,8 @@ echo "Versi PHP yang saya gunakan: $php_version<br>";
 echo "Tanggal saat ini: $date<br>";
 ?>
 ```
-10. `nano /etc/nginx/sites-available/default`
+Kemudian buat file /etc/nginx/sites-available/default dan isi file tersebut dengan config berikut :
+
 ```
 server {
 	listen 8001; # sesuaikan dengan web server Abimanyu:8001, Prabukusuma:8002, Wisanggeni:80003
@@ -76,10 +333,8 @@ server {
 	access_log /var/log/nginx/d14_access.log;
 }
 ```
-11. `service php7.2-fpm start`
-12. `service nginx restart`
-14. Kembali ke Load Balancer Arjuna
-15. `nano /etc/nginx/sites-available/default`
+Kemudian jalankan  `service php7.2-fpm start` dan `service nginx restart`. Setelah itu kembali ke Load Balancer Arjuna. Dalam Load Balancer Arjuna edit file `/etc/nginx/sites-available/default` dan isi dengan : 
+
 ```
 upstream myweb  {
 	server 192.198.3.3:8003; #IP Wisanggeni
@@ -96,12 +351,13 @@ server {
 	}
 }
 ```
-15. `service nginx restart` dan `service bind9 restart`
+Setelah file tersebut terkonfigurasi, jalankan  `service nginx restart` dan `service bind9 restart`.
+
+
 
 ## Soal 11
-#### Steps:
-1. Pergi ke DNS Master Yudhistira
-2. `nano /etc/bind/abimanyu/abimanyu.d14.conf` dan pastikan conf seperti berikut
+
+Edit file /etc/bind/abimanyu/abimanyu.d14.conf pada Yudhistira. Kemudian isi file dengan :
 ```
 ; BIND data file for local loopback interface
 ;
@@ -120,12 +376,10 @@ parikesit IN	A	192.198.3.5     ; IP Abimanyu
 ns1	IN	A	192.198.2.3 ; IP Werk
 baratayuda IN	NS	ns1
 ```
-3. Kemudian, pergi ke server Abimanyu
-4. `echo nameserver 192.168.122.1 > /etc/resolv.conf`
-5. `apt-get update` dan `apt-get install apache2`
-6. `apt-get install python3-pip` dan `pip3 install gdown`
-7. `cd /var/www`
-8. Download zip files
+Selanjutnya pada server abimanyu, jalankan command `echo nameserver 192.168.122.1 > /etc/resolv.conf` untuk menghubungkan dengan internet. Kemudian jalankan `apt-get update` dan `apt-get install apache2` untuk install apache2.   Kemudian jalankan `apt-get install python3-pip` dan `pip3 install gdown` untuk menginstall python3pip dan install gdown untuk mendownload file dari google drive.  Kemudian pergi ke directory  `cd /var/www` dan download zip files. 
+
+Berikut merupakan command yang dijalankan untuk download dan simpan file pada directory tersebut.
+
 - abimanyu.d14.com
 ```
 gdown 1a4V23hwK9S7hQEDEcv9FL14UkkrHc-Zc
@@ -148,7 +402,7 @@ unzip rjp.baratayuda.abimanyu.yyy.com.zip
 rm rjp.baratayuda.abimanyu.yyy.com.zip
 mv rjp.baratayuda.abimanyu.yyy.com rjp.baratayuda.abimanyu.d14
 ```
-9. `nano /etc/apache2/sites-available/000-default.conf`
+Kemudian pada  ``/etc/apache2/sites-available/000-default.conf``  isi dengan :
 ```
 <VirtualHost *:80>
 	ServerAdmin webmaster@localhost
@@ -161,15 +415,16 @@ mv rjp.baratayuda.abimanyu.yyy.com rjp.baratayuda.abimanyu.d14
 </VirtualHost>
 ```
 
+### Testing
+![[Screenshot 2023-10-14 at 17.14.09.png]]
+
 ## Soal 12
-#### Steps:
-1. `nano /var/www/abimanyu.d14/.htaccess`
+Pada server abimanyu, edit file `/var/www/abimanyu.d14/.htaccess`. Isi dengan :
 ```
 RewriteEngine On
 RewriteRule ^index\.php/home$ /home [R=301,L]
 ```
-2. `a2enmod rewrite`
-3. `nano /etc/apache2/sites-available/000-default.conf` dan tambahkan setting berikut
+Jalankan command `a2enmod rewrite`. Kemudian edit file `/etc/apache2/sites-available/000-default.conf` dan isi file dengan : 
 ```
 <Directory /var/www/abimanyu.d14>
 	Options +Indexes +FollowSymLinks -Multiviews
@@ -178,9 +433,12 @@ RewriteRule ^index\.php/home$ /home [R=301,L]
 </Directory>
 ```
 
+### Testing
+
+![[Screenshot 2023-10-14 at 17.19.46.png]]
+
 ## Soal 13
-#### Steps:
-1. `nano /etc/apache2/sites-available/parikesit.abimanyu.d14.conf`
+Edit file `/etc/apache2/sites-available/parikesit.abimanyu.d14.conf` dan isi file dengan :
 ```
 <VirtualHost *:80>
     ServerAdmin webmaster@localhost
@@ -188,11 +446,11 @@ RewriteRule ^index\.php/home$ /home [R=301,L]
     DocumentRoot /var/www/parikesit.abimanyu.d14
 </VirtualHost>
 ```
-2. a2ensite parikesit.abimanyu.d14.conf
+Jalankan command a2ensite parikesit.abimanyu.d14.conf.
+
 
 ## Soal 14
-#### Steps:
-1. `nano /etc/apache2/sites-available/parikesit.abimanyu.d14.conf`
+Edit file  `/etc/apache2/sites-available/parikesit.abimanyu.d14.conf` dan isi file dengan : 
 ```
 <VirtualHost *:80>
  	ServerAdmin webmaster@localhost
@@ -209,9 +467,11 @@ RewriteRule ^index\.php/home$ /home [R=301,L]
 </VirtualHost>
 ```
 
+
+
 ## Soal 15
-#### Steps:
-1. `nano /etc/apache2/sites-available/parikesit.abimanyu.d14.conf`
+
+Edit file `/etc/apache2/sites-available/parikesit.abimanyu.d14.conf` dan isi dengan : 
 ```
 <VirtualHost *:80>
  	ServerAdmin webmaster@localhost
@@ -236,10 +496,12 @@ RewriteRule ^index\.php/home$ /home [R=301,L]
 	ErrorDocument 403 /error/403.html
 </VirtualHost>
 ```
+### Testing
+![[Screenshot 2023-10-15 at 10.27.30.png]]
 
 ## Soal 16
-#### Steps:
-1. `nano /etc/apache2/sites-available/parikesit.abimanyu.d14.conf`
+
+Edit file `/etc/apache2/sites-available/parikesit.abimanyu.d14.conf` menjadi :
 ```
 <VirtualHost *:80>
  	ServerAdmin webmaster@localhost
@@ -267,10 +529,11 @@ RewriteRule ^index\.php/home$ /home [R=301,L]
 </VirtualHost>
 ```
 
+### Testing
+![[Screenshot 2023-10-15 at 10.30.54.png]]
 ## Soal 17
 #### Steps:
-1. Pergi ke DNS Slave Werkudara untuk setting subdomai rjp ke IP Abimanyu
-2. `nano /etc/bind/delegasi/baratayuda.abimanyu.d14.com`
+Pergi ke DNS Slave Werkudara untuk setting subdomai rjp ke IP Abimanyu lalu edit file `/etc/bind/delegasi/baratayuda.abimanyu.d14.com` menjadi : 
 ```
 ;
 ; BIND data file for local loopback interface
@@ -288,8 +551,7 @@ $TTL    604800
 www	IN      CNAME   baratayuda.abimanyu.d14.com.
 rjp	IN      A	192.198.3.5 ; IP Abimanyu
 ```
-3. Kemudian, kembali ke Abimanyu
-4. `nano /etc/apache2/sites-available/rjp.baratayuda.abimanyu.d14.conf`
+3. Kemudian, kembali ke Abimanyu dan edit file `/etc/apache2/sites-available/rjp.baratayuda.abimanyu.d14.conf` dan isi menjadi :
 ```
 <VirtualHost *:14000>
     	ServerAdmin webmaster@localhost
@@ -305,24 +567,23 @@ rjp	IN      A	192.198.3.5 ; IP Abimanyu
    	DocumentRoot /var/www/rjp.baratayuda.abimanyu.d14
 </VirtualHost>
 ```
-5. `a2ensite rjp.baratayuda.abimanyu.d14.conf`
-6. Tambahkan port 14000 dan 14400 ke `/etc/apache2.ports.conf`
+ Kemudian jalankan `a2ensite rjp.baratayuda.abimanyu.d14.conf`. Setelah itu tambahkan port 14000 dan 14400 ke `/etc/apache2.ports.conf`
 ```
 Listen 14000
 Listen 14400
 ```
 
 ## Soal 18
-#### Steps:
-1. `nano /var/www/rjp.baratayuda.abimanyu.d14/.htaccess`
+
+Edit file ` /var/www/rjp.baratayuda.abimanyu.d14/.htaccess` menjadi : 
 ```
 AuthType Basic
 AuthName "Authentication Required"
 AuthUserFile /etc/apache2/.htpasswd
 Require user Wayang
 ```
-2. `htpasswd -c /etc/apache2/.htpasswd Wayang` kemudian akan diprompt buat password, kemudian masukkan "baratayudad14"
-3. `nano /etc/apache2/sites-available/rjp.baratayuda.abimanyu.d14.conf`
+Jalankan `htpasswd -c /etc/apache2/.htpasswd Wayang` kemudian akan diprompt buat password, kemudian masukkan "baratayudad14".
+Edit file /etc/apache2/sites-available/rjp.baratayuda.abimanyu.d14.conf menjadi : 
 ```
 <VirtualHost *:14000>
 	ServerAdmin webmaster@localhost
@@ -350,10 +611,14 @@ Require user Wayang
     	</Directory>
 </VirtualHost>
 ```
+
+### Testing 
+![[Screenshot 2023-10-15 at 10.32.38.png]]
+
+
+
 ## Soal 19
-#### Steps:
-1. Pergi ke DNS Master Yudhistira
-2. `nano /etc/bind/abimanyu/abimanyu.d14.com`
+Pergi ke DNS Master Yudhistira. Lalu edit file  `/etc/bind/abimanyu/abimanyu.d14.com` menjadi 
 ```
 ; BIND data file for local loopback interface
 ;
@@ -375,14 +640,12 @@ baratayuda IN	NS	ns1
 ```
 
 ## Soal 20
-#### Steps:
-1. Pergi ke Web Server Abimanyu
-2. `nano /var/www/parikesit.abimanyu.d14/.htaccess`
+Pergi ke Web Server Abimanyu  lalu edit file ` /var/www/parikesit.abimanyu.d14/.htaccess` menjadi :
 ```
 RewriteEngine On
 RewriteRule .*abimanyu.* /abimanyu.png [R,L]
 ```
-3. `nano /etc/apache2/sites-available/parikesit.abimanyu.d14.conf`
+3. Kemudian edit file `/etc/apache2/sites-available/parikesit.abimanyu.d14.conf` menjadi : 
 ```
 <VirtualHost *:80>
  	ServerAdmin webmaster@localhost
@@ -414,3 +677,6 @@ RewriteRule .*abimanyu.* /abimanyu.png [R,L]
 	ErrorDocument 403 /error/403.php
 </VirtualHost>
 ```
+
+
+
