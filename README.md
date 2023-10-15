@@ -143,7 +143,7 @@ dan isi :
 run `service bind9 restart`.
 
 #### Test
-![Alt Text 2](image/2.png)
+
 ![Alt Text 3](image/3.png)
 ## Soal 4 dan 5
 
