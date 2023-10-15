@@ -281,7 +281,7 @@ Kemudian restart service bind.
 
 
 ### Testing
-![Alt Text 5](image/5.png)
+![Alt Text 5](image/6.png)
 
 ## Soal 9 dan 10
 
@@ -417,7 +417,7 @@ Kemudian pada  ``/etc/apache2/sites-available/000-default.conf``  isi dengan :
 ```
 
 ### Testing
-![Alt Text 6](image/6.png)
+![Alt Text 6](image/7.png)
 
 ## Soal 12
 Pada server abimanyu, edit file `/var/www/abimanyu.d14/.htaccess`. Isi dengan :
@@ -436,7 +436,7 @@ Jalankan command `a2enmod rewrite`. Kemudian edit file `/etc/apache2/sites-avail
 
 ### Testing
 
-![Alt Text 7](image/7.png)
+![Alt Text 7](image/8.png)
 
 ## Soal 13
 Edit file `/etc/apache2/sites-available/parikesit.abimanyu.d14.conf` dan isi file dengan :
@@ -498,7 +498,7 @@ Edit file `/etc/apache2/sites-available/parikesit.abimanyu.d14.conf` dan isi den
 </VirtualHost>
 ```
 ### Testing
-![Alt Text 8](image/8.png)
+![Alt Text 8](image/9.png)
 
 ## Soal 16
 
@@ -531,7 +531,7 @@ Edit file `/etc/apache2/sites-available/parikesit.abimanyu.d14.conf` menjadi :
 ```
 
 ### Testing
-![Alt Text 9](image/9.png)
+![Alt Text 9](image/10.png)
 ## Soal 17
 #### Steps:
 Pergi ke DNS Slave Werkudara untuk setting subdomai rjp ke IP Abimanyu lalu edit file `/etc/bind/delegasi/baratayuda.abimanyu.d14.com` menjadi : 
